@@ -3,14 +3,81 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login & Sign Up</title>
+  <title>Login & Sign-Up</title>
+  <style>
+    /* Styling */
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #6a11cb, #2575fc);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: #ffffff20;
+      border-radius: 15px;
+      padding: 40px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    input[type="email"], input[type="password"], input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 5px;
+      background: #ffffff90;
+      color: #333;
+    }
+
+    button {
+      background: #6a11cb;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 10px;
+      width: 100%;
+      cursor: pointer;
+      font-size: 1em;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    button:hover {
+      background: #2575fc;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome</h1>
+    <h2>Sign-Up</h2>
+    <input type="text" id="signup-name" placeholder="Enter your name">
+    <input type="email" id="signup-email" placeholder="Enter your email">
+    <input type="number" id="signup-phone" placeholder="Enter your phone number">
+    <input type="password" id="signup-password" placeholder="Enter your password">
+    <button onclick="signUp()">Sign-Up</button>
+
+    <h2>Login</h2>
+    <input type="email" id="login-email" placeholder="Enter your email">
+    <input type="password" id="login-password" placeholder="Enter your password">
+    <button onclick="login()">Login</button>
+  </div>
+
   <script type="module">
     // Import Firebase SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-auth.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-analytics.js";
 
-    // Firebase configuration
+    // Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyANO8VAsKy1FOIc-DwA22bU4MFfBhhPlyw",
       authDomain: "portfolio-1193d.firebaseapp.com",
@@ -22,24 +89,25 @@
       measurementId: "G-CC5ML3EDRX"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const auth = getAuth();
 
     // Sign-Up Function
     function signUp() {
+      const name = document.getElementById("signup-name").value;
       const email = document.getElementById("signup-email").value;
+      const phone = document.getElementById("signup-phone").value;
       const password = document.getElementById("signup-password").value;
 
       createUserWithEmailAndPassword(auth, email, password)
         .then((userCredential) => {
           const user = userCredential.user;
-          console.log("Sign-Up Successful:", user);
-          alert("Sign-Up Successful");
+          console.log(`User Created: Name-${name}, Phone-${phone}, Email-${email}`);
+          alert("Sign-Up Successful!");
         })
         .catch((error) => {
-          console.error("Error:", error);
+          console.error(error.message);
           alert(error.message);
         });
     }
@@ -53,29 +121,13 @@
         .then((userCredential) => {
           const user = userCredential.user;
           console.log("Login Successful:", user);
-          alert("Login Successful");
+          alert("Login Successful!");
         })
         .catch((error) => {
-          console.error("Error:", error);
+          console.error(error.message);
           alert(error.message);
         });
     }
   </script>
-</head>
-<body>
-  <h1>Firebase Login and Signup</h1>
-  <div id="signup">
-    <h2>Sign Up</h2>
-    <input type="email" id="signup-email" placeholder="Email">
-    <input type="password" id="signup-password" placeholder="Password">
-    <button onclick="signUp()">Sign Up</button>
-  </div>
-
-  <div id="login">
-    <h2>Login</h2>
-    <input type="email" id="login-email" placeholder="Email">
-    <input type="password" id="login-password" placeholder="Password">
-    <button onclick="login()">Login</button>
-  </div>
 </body>
 </html>
