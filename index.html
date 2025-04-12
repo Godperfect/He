@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login & Sign Up</title>
+  <script type="module">
+    // Import Firebase SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-auth.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-analytics.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyANO8VAsKy1FOIc-DwA22bU4MFfBhhPlyw",
+      authDomain: "portfolio-1193d.firebaseapp.com",
+      databaseURL: "https://portfolio-1193d-default-rtdb.firebaseio.com",
+      projectId: "portfolio-1193d",
+      storageBucket: "portfolio-1193d.firebasestorage.app",
+      messagingSenderId: "444930634591",
+      appId: "1:444930634591:web:c2d2931ab69501a0773cea",
+      measurementId: "G-CC5ML3EDRX"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const auth = getAuth();
+
+    // Sign-Up Function
+    function signUp() {
+      const email = document.getElementById("signup-email").value;
+      const password = document.getElementById("signup-password").value;
+
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          console.log("Sign-Up Successful:", user);
+          alert("Sign-Up Successful");
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          alert(error.message);
+        });
+    }
+
+    // Login Function
+    function login() {
+      const email = document.getElementById("login-email").value;
+      const password = document.getElementById("login-password").value;
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          console.log("Login Successful:", user);
+          alert("Login Successful");
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          alert(error.message);
+        });
+    }
+  </script>
+</head>
+<body>
+  <h1>Firebase Login and Signup</h1>
+  <div id="signup">
+    <h2>Sign Up</h2>
+    <input type="email" id="signup-email" placeholder="Email">
+    <input type="password" id="signup-password" placeholder="Password">
+    <button onclick="signUp()">Sign Up</button>
+  </div>
+
+  <div id="login">
+    <h2>Login</h2>
+    <input type="email" id="login-email" placeholder="Email">
+    <input type="password" id="login-password" placeholder="Password">
+    <button onclick="login()">Login</button>
+  </div>
+</body>
+</html>
