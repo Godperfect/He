@@ -3,80 +3,694 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login & Sign-Up</title>
+  <title>Perfect</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.1/firebase-analytics-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.1/firebase-firestore-compat.js"></script>
   <style>
-    /* Styling */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Arial', sans-serif;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to right, #6a11cb, #2575fc);
-      color: #fff;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      height: 100vh;
+      overflow: hidden;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
-      margin: 0;
+      position: relative;
     }
 
-    .container {
-      background: #ffffff20;
+    .stars {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+
+    .star {
+      position: absolute;
+      background-color: white;
+      border-radius: 50%;
+      animation: twinkle 5s infinite;
+    }
+
+    @keyframes twinkle {
+      0% { opacity: 0.3; }
+      50% { opacity: 1; }
+      100% { opacity: 0.3; }
+    }
+
+    .shooting-star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,1));
+      border-radius: 50%;
+      animation: shoot 8s linear infinite;
+      opacity: 0;
+    }
+
+    @keyframes shoot {
+      0% { transform: translateX(0) translateY(0); opacity: 1; }
+      70% { opacity: 1; }
+      100% { transform: translateX(300px) translateY(300px); opacity: 0; }
+    }
+
+    .login-container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
       border-radius: 15px;
       padding: 40px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-      width: 100%;
-      max-width: 400px;
+      width: 350px;
+      z-index: 1;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .login-header {
       text-align: center;
+      margin-bottom: 30px;
     }
 
-    input[type="email"], input[type="password"], input[type="text"], input[type="number"] {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 5px;
-      background: #ffffff90;
-      color: #333;
+    .login-header h1 {
+      color: white;
+      margin-bottom: 10px;
+      font-size: 28px;
     }
 
-    button {
-      background: #6a11cb;
-      color: #fff;
+    .login-header p {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      color: white;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 5px;
+      color: white;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .form-footer {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    .forgot-password {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.3s ease;
+    }
+
+    .forgot-password:hover {
+      color: white;
+    }
+
+    .btn-login {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(90deg, #7928CA, #FF0080);
       border: none;
       border-radius: 5px;
-      padding: 10px;
-      width: 100%;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
       cursor: pointer;
-      font-size: 1em;
-      transition: transform 0.3s ease-in-out;
+      margin-top: 30px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
-    button:hover {
-      background: #2575fc;
-      transform: scale(1.05);
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 0, 128, 0.4);
+    }
+
+    .btn-login:active {
+      transform: translateY(0);
+    }
+
+    .toggle-form {
+      display: block;
+      text-align: center;
+      margin-top: 20px;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+
+    .toggle-form:hover {
+      color: white;
+    }
+
+    .planet {
+      position: absolute;
+      border-radius: 50%;
+      z-index: 0;
+      opacity: 0.8;
+      box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
+    }
+
+    .planet-1 {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(45deg, #FF9900, #FF5500);
+      top: 15%;
+      left: 15%;
+      animation: float 15s infinite ease-in-out;
+    }
+
+    .planet-2 {
+      width: 150px;
+      height: 150px;
+      background: linear-gradient(45deg, #3366FF, #00CCFF);
+      bottom: 10%;
+      right: 10%;
+      animation: float 20s infinite ease-in-out reverse;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(5deg); }
+      100% { transform: translateY(0) rotate(0deg); }
+    }
+
+    .cosmic-dust {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+        radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 50px 50px, 100px 100px;
+      animation: dust 120s infinite linear;
+    }
+
+    @keyframes dust {
+      from { transform: translateY(0); }
+      to { transform: translateY(1000px); }
+    }
+
+    /* OTP Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(15px);
+      border-radius: 15px;
+      padding: 30px;
+      width: 300px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-header h2 {
+      color: white;
+      font-size: 24px;
+    }
+
+    .otp-inputs {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .otp-input {
+      width: 40px;
+      height: 40px;
+      text-align: center;
+      font-size: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 5px;
+      color: white;
+    }
+
+    .otp-input:focus {
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.7);
+    }
+
+    .resend-otp {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.7);
+      margin: 15px 0;
+      font-size: 14px;
+    }
+
+    .resend-link {
+      color: rgba(255, 255, 255, 0.9);
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .btn-verify {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(90deg, #7928CA, #FF0080);
+      border: none;
+      border-radius: 5px;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .btn-verify:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Forgot Password Modal */
+    .forgot-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .forgot-modal.show {
+      display: flex;
+    }
+
+    /* Toast Messages */
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      border-radius: 5px;
+      color: white;
+      font-size: 14px;
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast.success {
+      background: rgba(46, 213, 115, 0.9);
+    }
+
+    .toast.error {
+      background: rgba(255, 71, 87, 0.9);
+    }
+
+    /* Loading Spinner */
+    .spinner {
+      display: none;
+      width: 30px;
+      height: 30px;
+      margin: 0 auto;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .form-switch {
+      margin-top: 15px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* API Key Modal */
+    .api-key-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .api-key-modal.show {
+      display: flex;
+    }
+
+    .api-key-content {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(15px);
+      border-radius: 15px;
+      padding: 30px;
+      width: 450px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      color: white;
+    }
+
+    .api-key-header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .api-key-header h2 {
+      color: white;
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .api-key-header p {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+    }
+
+    .key-info {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .key-field {
+      margin-bottom: 12px;
+    }
+
+    .key-field:last-child {
+      margin-bottom: 0;
+    }
+
+    .key-label {
+      display: block;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 4px;
+    }
+
+    .key-value {
+      display: flex;
+      align-items: center;
+      font-family: 'Courier New', monospace;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 14px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      word-break: break-all;
+    }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-left: 8px;
+      font-size: 12px;
+      transition: background 0.3s ease;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .usage-info {
+      display: flex;
+      justify-content: space-between;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .usage-item {
+      text-align: center;
+      flex: 1;
+    }
+
+    .usage-count {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .usage-label {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .btn-continue {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(90deg, #7928CA, #FF0080);
+      border: none;
+      border-radius: 5px;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .btn-continue:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 0, 128, 0.4);
+    }
+
+    .alert {
+      color: rgba(255, 255, 255, 0.8);
+      background: rgba(255, 165, 0, 0.2);
+      border: 1px solid rgba(255, 165, 0, 0.3);
+      border-radius: 4px;
+      padding: 10px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+    }
+
+    .alert-icon {
+      margin-right: 10px;
+      font-size: 18px;
+      color: orange;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Welcome</h1>
-    <h2>Sign-Up</h2>
-    <input type="text" id="signup-name" placeholder="Enter your name">
-    <input type="email" id="signup-email" placeholder="Enter your email">
-    <input type="number" id="signup-phone" placeholder="Enter your phone number">
-    <input type="password" id="signup-password" placeholder="Enter your password">
-    <button onclick="signUp()">Sign-Up</button>
+  <div class="cosmic-dust"></div>
+  <div class="stars" id="stars"></div>
 
-    <h2>Login</h2>
-    <input type="email" id="login-email" placeholder="Enter your email">
-    <input type="password" id="login-password" placeholder="Enter your password">
-    <button onclick="login()">Login</button>
+  <div class="planet planet-1"></div>
+  <div class="planet planet-2"></div>
+
+  <div class="login-container">
+    <div class="login-header">
+      <h1>Welcome</h1>
+      <p id="form-description">Sign</p>
+    </div>
+
+    <form id="auth-form">
+      <div class="form-group">
+        <label for="phoneEmail">Phone Number or Email</label>
+        <input type="text" id="phoneEmail" placeholder="Enter phone number or email" required>
+      </div>
+
+      <div id="passwordField" class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter your password" required>
+      </div>
+
+      <div id="confirmPasswordField" class="form-group" style="display: none;">
+        <label for="confirmPassword">Confirm Password</label>
+        <input type="password" id="confirmPassword" placeholder="Confirm your password">
+      </div>
+
+      <div class="form-footer">
+        <a href="#" id="forgotPassword" class="forgot-password">Forgot password?</a>
+      </div>
+
+      <button type="submit" id="submitBtn" class="btn-login">Login</button>
+      <div class="spinner" id="loadingSpinner"></div>
+    </form>
+
+    <div class="form-switch">
+      <span id="formToggleText">Need an account?</span>
+      <a href="#" id="formToggle" class="toggle-form">Register</a>
+    </div>
   </div>
 
-  <script type="module">
-    // Import Firebase SDKs
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-auth.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.19.1/firebase-analytics.js";
+  <!-- OTP Verification Modal -->
+  <div id="otpModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Verify Your Number</h2>
+        <p>Enter the 6-digit code sent to your phone</p>
+      </div>
 
+      <div class="otp-inputs">
+        <input type="text" class="otp-input" maxlength="1" autofocus>
+        <input type="text" class="otp-input" maxlength="1">
+        <input type="text" class="otp-input" maxlength="1">
+        <input type="text" class="otp-input" maxlength="1">
+        <input type="text" class="otp-input" maxlength="1">
+        <input type="text" class="otp-input" maxlength="1">
+      </div>
+
+      <div class="resend-otp">
+        Didn't receive code? <span class="resend-link" id="resendOtp">Resend</span>
+        <div id="countdown"></div>
+      </div>
+
+      <button id="verifyOtp" class="btn-verify">Verify</button>
+    </div>
+  </div>
+
+  <!-- Forgot Password Modal -->
+  <div id="forgotModal" class="forgot-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Reset Password</h2>
+        <p>Enter your email to receive a reset link</p>
+      </div>
+
+      <div class="form-group">
+        <input type="email" id="resetEmail" placeholder="Enter your email" required>
+      </div>
+
+      <button id="sendResetLink" class="btn-verify">Send Reset Link</button>
+      <div class="spinner" id="resetSpinner" style="margin-top: 15px;"></div>
+
+      <div class="resend-otp" style="margin-top: 20px;">
+        <span class="resend-link" id="cancelReset">Cancel</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- API Key Modal -->
+  <div id="apiKeyModal" class="api-key-modal">
+    <div class="api-key-content">
+      <div class="api-key-header">
+        <h2>Your API Access</h2>
+        <p>Here are your Universe Portal API credentials</p>
+      </div>
+
+      <div class="alert">
+        <span class="alert-icon">⚠️</span>
+        <span>Keep your API key secure. Never share it publicly.</span>
+      </div>
+
+      <div class="key-info">
+        <div class="key-field">
+          <span class="key-label">User ID</span>
+          <div class="key-value">
+            <span id="userId"></span>
+            <button class="copy-btn" data-copy="userId">Copy</button>
+          </div>
+        </div>
+
+        <div class="key-field">
+          <span class="key-label">API Key</span>
+          <div class="key-value">
+            <span id="apiKey"></span>
+            <button class="copy-btn" data-copy="apiKey">Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="usage-info">
+        <div class="usage-item">
+          <div class="usage-count" id="limitCount">100</div>
+          <div class="usage-label">Total Limit</div>
+        </div>
+
+        <div class="usage-item">
+          <div class="usage-count" id="usedCount">0</div>
+          <div class="usage-label">Used</div>
+        </div>
+
+        <div class="usage-item">
+          <div class="usage-count" id="remainingCount">100</div>
+          <div class="usage-label">Remaining</div>
+        </div>
+      </div>
+
+      <button id="continueBtn" class="btn-continue">Continue to Dashboard</button>
+    </div>
+  </div>
+
+  <!-- Toast Message -->
+  <div id="toast" class="toast"></div>
+
+  <script>
     // Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyANO8VAsKy1FOIc-DwA22bU4MFfBhhPlyw",
@@ -89,44 +703,521 @@
       measurementId: "G-CC5ML3EDRX"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const auth = getAuth();
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const analytics = firebase.analytics();
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-    // Sign-Up Function
-    function signUp() {
-      const name = document.getElementById("signup-name").value;
-      const email = document.getElementById("signup-email").value;
-      const phone = document.getElementById("signup-phone").value;
-      const password = document.getElementById("signup-password").value;
+    // DOM Elements
+    const authForm = document.getElementById('auth-form');
+    const phoneEmailInput = document.getElementById('phoneEmail');
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordField = document.getElementById('confirmPasswordField');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    const forgotPassword = document.getElementById('forgotPassword');
+    const submitBtn = document.getElementById('submitBtn');
+    const formToggle = document.getElementById('formToggle');
+    const formToggleText = document.getElementById('formToggleText');
+    const formDescription = document.getElementById('form-description');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const otpModal = document.getElementById('otpModal');
+    const forgotModal = document.getElementById('forgotModal');
+    const resetEmailInput = document.getElementById('resetEmail');
+    const sendResetLink = document.getElementById('sendResetLink');
+    const cancelReset = document.getElementById('cancelReset');
+    const resetSpinner = document.getElementById('resetSpinner');
+    const otpInputs = document.querySelectorAll('.otp-input');
+    const verifyOtpBtn = document.getElementById('verifyOtp');
+    const resendOtpBtn = document.getElementById('resendOtp');
+    const countdown = document.getElementById('countdown');
+    const toast = document.getElementById('toast');
 
-      createUserWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          const user = userCredential.user;
-          console.log(`User Created: Name-${name}, Phone-${phone}, Email-${email}`);
-          alert("Sign-Up Successful!");
-        })
-        .catch((error) => {
-          console.error(error.message);
-          alert(error.message);
+    // API Key Modal Elements
+    const apiKeyModal = document.getElementById('apiKeyModal');
+    const userIdElement = document.getElementById('userId');
+    const apiKeyElement = document.getElementById('apiKey');
+    const limitCountElement = document.getElementById('limitCount');
+    const usedCountElement = document.getElementById('usedCount');
+    const remainingCountElement = document.getElementById('remainingCount');
+    const continueBtn = document.getElementById('continueBtn');
+    const copyButtons = document.querySelectorAll('.copy-btn');
+
+    // Variables
+    let isLoginMode = true;
+    let verificationId = '';
+    let countdownTimer;
+    let isPhoneAuth = false;
+
+    // Function to create stars
+    document.addEventListener('DOMContentLoaded', function() {
+      const starsContainer = document.getElementById('stars');
+      const numStars = 200;
+
+      // Create static stars
+      for (let i = 0; i < numStars; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+
+        // Random size
+        const size = Math.random() * 3;
+        star.style.width = size + 'px';
+        star.style.height = size + 'px';
+
+        // Random position
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 100 + '%';
+
+        // Random animation delay
+        star.style.animationDelay = Math.random() * 5 + 's';
+
+        starsContainer.appendChild(star);
+      }
+
+      // Create shooting stars
+      for (let i = 0; i < 5; i++) {
+        const shootingStar = document.createElement('div');
+        shootingStar.className = 'shooting-star';
+
+        // Random position
+        shootingStar.style.left = Math.random() * 70 + '%';
+        shootingStar.style.top = Math.random() * 30 + '%';
+
+        // Random animation delay
+        shootingStar.style.animationDelay = Math.random() * 10 + 's';
+
+        // Random animation duration
+        shootingStar.style.animationDuration = (Math.random() * 5 + 3) + 's';
+
+        starsContainer.appendChild(shootingStar);
+      }
+    });
+
+    // Toggle between login and register
+    formToggle.addEventListener('click', function(e) {
+      e.preventDefault();
+      isLoginMode = !isLoginMode;
+
+      if (isLoginMode) {
+        formToggle.textContent = 'Register';
+        formToggleText.textContent = 'Need an account?';
+        submitBtn.textContent = 'Login';
+        formDescription.textContent = 'Sign in to access the cosmos';
+        confirmPasswordField.style.display = 'none';
+      } else {
+        formToggle.textContent = 'Login';
+        formToggleText.textContent = 'Already have an account?';
+        submitBtn.textContent = 'Register';
+        formDescription.textContent = 'Create your cosmic account';
+        confirmPasswordField.style.display = 'block';
+      }
+    });
+
+    // Handle form submission
+    authForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const phoneEmail = phoneEmailInput.value.trim();
+      const password = passwordInput.value.trim();
+
+      // Validate inputs
+      if (!phoneEmail || !password) {
+        showToast('Please fill all required fields', 'error');
+        return;
+      }
+
+      // Check if it's a registration and passwords match
+      if (!isLoginMode) {
+        const confirmPassword = confirmPasswordInput.value.trim();
+        if (password !== confirmPassword) {
+          showToast('Passwords do not match', 'error');
+          return;
+        }
+      }
+
+      // Show loading spinner
+      submitBtn.style.display = 'none';
+      loadingSpinner.style.display = 'block';
+
+      // Check if input is phone or email
+      isPhoneAuth = isPhoneNumber(phoneEmail);
+
+      if (isPhoneAuth) {
+        // Handle phone authentication
+        handlePhoneAuth(phoneEmail);
+      } else {
+        // Handle email authentication
+        handleEmailAuth(phoneEmail, password);
+      }
+    });
+
+    // Generate a random API key
+    function generateApiKey(userId) {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+      let key = 'univ_' + userId.substring(0, 8) + '_';
+
+      for (let i = 0; i < 24; i++) {
+        key += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+
+      return key;
+    }
+
+    // Save user API details to Firestore
+    function saveUserApiDetails(userId, apiKey) {
+      return db.collection('api_users').doc(userId).set({
+        userId: userId,
+        apiKey: apiKey,
+        limitCount: 100,
+        usedCount: 0,
+        remainingCount: 100,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        lastUsed: null
+      })
+      .then(() => {
+        console.log('API details saved to Firestore');
+        return {
+          userId: userId,
+          apiKey: apiKey,
+          limitCount: 100, 
+          usedCount: 0,
+          remainingCount: 100
+        };
+      })
+      .catch((error) => {
+        console.error('Error saving API details:', error);
+        throw error;
+      });
+    }
+
+    // Check if user API details exist, otherwise create new ones
+    function getOrCreateApiDetails(user) {
+      const userId = user.uid;
+      
+      return db.collection('api_users').doc(userId).get()
+        .then((doc) => {
+          if (doc.exists) {
+            // API details already exist
+            return doc.data();
+          } else {
+            // Create new API details
+            const apiKey = generateApiKey(userId);
+            return saveUserApiDetails(userId, apiKey);
+          }
         });
     }
 
-    // Login Function
-    function login() {
-      const email = document.getElementById("login-email").value;
-      const password = document.getElementById("login-password").value;
+    // Display API key modal with user's API details
+    function showApiKeyModal(apiDetails) {
+      userIdElement.textContent = apiDetails.userId;
+      apiKeyElement.textContent = apiDetails.apiKey;
+      limitCountElement.textContent = apiDetails.limitCount;
+      usedCountElement.textContent = apiDetails.usedCount;
+      remainingCountElement.textContent = apiDetails.remainingCount;
+      
+      apiKeyModal.classList.add('show');
+    }
 
-      signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          const user = userCredential.user;
-          console.log("Login Successful:", user);
-          alert("Login Successful!");
+    // Handle phone authentication
+    function handlePhoneAuth(phone) {
+      // Format phone number if needed
+      if (!phone.startsWith('+')) {
+        phone = '+' + phone;
+      }
+      
+      const appVerifier = new firebase.auth.RecaptchaVerifier('submitBtn', {
+        'size': 'invisible'
+      });
+      
+      if (isLoginMode) {
+        // For login, we need to first check if the user exists
+        // This is a simplified example, normally you'd check against your database
+        showToast('Phone login requires OTP verification', 'error');
+        submitBtn.style.display = 'block';
+        loadingSpinner.style.display = 'none';
+      } else {
+        // For registration, send OTP directly
+        firebase.auth().signInWithPhoneNumber(phone, appVerifier)
+          .then(function(confirmationResult) {
+            verificationId = confirmationResult;
+            showToast('OTP sent to your phone', 'success');
+            submitBtn.style.display = 'block';
+            loadingSpinner.style.display = 'none';
+            openOtpModal();
+            startCountdown();
+          })
+          .catch(function(error) {
+            showToast(error.message, 'error');
+            submitBtn.style.display = 'block';
+            loadingSpinner.style.display = 'none';
+          });
+      }
+    }
+
+    // Handle email authentication
+    function handleEmailAuth(email, password) {
+      if (isLoginMode) {
+        // Login with email and password
+        firebase.auth().signInWithEmailAndPassword(email, password)
+          .then(function(userCredential) {
+            showToast('Login successful!', 'success');
+            
+            // Get or create API details and show modal
+            getOrCreateApiDetails(userCredential.user)
+              .then(apiDetails => {
+                submitBtn.style.display = 'block';
+                loadingSpinner.style.display = 'none';
+                showApiKeyModal(apiDetails);
+              })
+              .catch(error => {
+                showToast('Error retrieving API details', 'error');
+                submitBtn.style.display = 'block';
+                loadingSpinner.style.display = 'none';
+              });
+          })
+          .catch(function(error) {
+            showToast(error.message, 'error');
+            submitBtn.style.display = 'block';
+            loadingSpinner.style.display = 'none';
+          });
+      } else {
+        // Register with email and password
+        firebase.auth().createUserWithEmailAndPassword(email, password)
+          .then(function(userCredential) {
+            showToast('Registration successful!', 'success');
+            // Send email verification
+            userCredential.user.sendEmailVerification();
+            
+            // Create API details for new user and show modal
+            const apiKey = generateApiKey(userCredential.user.uid);
+            saveUserApiDetails(userCredential.user.uid, apiKey)
+              .then(apiDetails => {
+                submitBtn.style.display = 'block';
+                loadingSpinner.style.display = 'none';
+                showApiKeyModal(apiDetails);
+              })
+              .catch(error => {
+                showToast('Error creating API details', 'error');
+                submitBtn.style.display = 'block';
+                loadingSpinner.style.display = 'none';
+              });
+          })
+          .catch(function(error) {
+            showToast(error.message, 'error');
+            submitBtn.style.display = 'block';
+            loadingSpinner.style.display = 'none';
+          });
+      }
+    }
+
+    // Open OTP verification modal
+    function openOtpModal() {
+      otpModal.classList.add('show');
+      otpInputs[0].focus();
+    }
+
+    // Handle OTP input focus changes
+    otpInputs.forEach((input, index) => {
+      input.addEventListener('keyup', function(e) {
+        if (e.key >= 0 && e.key <= 9) {
+          if (index < otpInputs.length - 1) {
+            otpInputs[index + 1].focus();
+          }
+          
+          // Check if all inputs are filled
+          const isComplete = Array.from(otpInputs).every(input => input.value.trim() !== '');
+          verifyOtpBtn.disabled = !isComplete;
+        } else if (e.key === 'Backspace') {
+          if (index > 0) {
+            otpInputs[index - 1].focus();
+          }
+        }
+      });
+    });
+
+    // Verify OTP
+    verifyOtpBtn.addEventListener('click', function() {
+      const otpCode = Array.from(otpInputs).map(input => input.value).join('');
+      
+      if (otpCode.length !== 6) {
+        showToast('Please enter the 6-digit code', 'error');
+        return;
+      }
+      
+      verifyOtpBtn.disabled = true;
+      
+      // Confirm OTP verification
+      verificationId.confirm(otpCode)
+        .then(function(result) {
+          showToast('Phone number verified successfully!', 'success');
+          otpModal.classList.remove('show');
+          
+          // Get user from result and create API details
+          const user = result.user;
+          const apiKey = generateApiKey(user.uid);
+          
+          saveUserApiDetails(user.uid, apiKey)
+            .then(apiDetails => {
+              showApiKeyModal(apiDetails);
+            })
+            .catch(error => {
+              showToast('Error creating API details', 'error');
+            });
         })
-        .catch((error) => {
-          console.error(error.message);
-          alert(error.message);
+        .catch(function(error) {
+          showToast('Invalid OTP. Please try again.', 'error');
+          verifyOtpBtn.disabled = false;
         });
+    });
+
+    // Resend OTP
+    resendOtpBtn.addEventListener('click', function() {
+      if (resendOtpBtn.classList.contains('disabled')) {
+        return;
+      }
+      
+      resendOtpBtn.classList.add('disabled');
+      
+      const phoneNumber = isPhoneAuth ? phoneEmailInput.value.trim() : '';
+      
+      if (!phoneNumber) {
+        showToast('Phone number is missing', 'error');
+        return;
+      }
+      
+      const formattedPhone = phoneNumber.startsWith('+') ? phoneNumber : '+' + phoneNumber;
+      
+      const appVerifier = new firebase.auth.RecaptchaVerifier('resendOtp', {
+        'size': 'invisible'
+      });
+      
+      firebase.auth().signInWithPhoneNumber(formattedPhone, appVerifier)
+        .then(function(confirmationResult) {
+          verificationId = confirmationResult;
+          showToast('OTP resent successfully', 'success');
+          startCountdown();
+        })
+        .catch(function(error) {
+          showToast(error.message, 'error');
+          resendOtpBtn.classList.remove('disabled');
+        });
+    });
+
+    // Start countdown timer for OTP resend
+    function startCountdown() {
+      let timeLeft = 60;
+      countdown.textContent = `(${timeLeft}s)`;
+      resendOtpBtn.classList.add('disabled');
+      
+      clearInterval(countdownTimer);
+      countdownTimer = setInterval(function() {
+        timeLeft--;
+        countdown.textContent = `(${timeLeft}s)`;
+        
+        if (timeLeft <= 0) {
+          clearInterval(countdownTimer);
+          countdown.textContent = '';
+          resendOtpBtn.classList.remove('disabled');
+        }
+      }, 1000);
+    }
+
+    // Handle forgot password
+    forgotPassword.addEventListener('click', function(e) {
+      e.preventDefault();
+      forgotModal.classList.add('show');
+      resetEmailInput.focus();
+    });
+
+    // Send password reset email
+    sendResetLink.addEventListener('click', function() {
+      const email = resetEmailInput.value.trim();
+      
+      if (!email) {
+        showToast('Please enter your email', 'error');
+        return;
+      }
+      
+      sendResetLink.style.display = 'none';
+      resetSpinner.style.display = 'block';
+      
+      firebase.auth().sendPasswordResetEmail(email)
+        .then(function() {
+          showToast('Password reset email sent!', 'success');
+          forgotModal.classList.remove('show');
+          sendResetLink.style.display = 'block';
+          resetSpinner.style.display = 'none';
+        })
+        .catch(function(error) {
+          showToast(error.message, 'error');
+          sendResetLink.style.display = 'block';
+          resetSpinner.style.display = 'none';
+        });
+    });
+
+    // Cancel reset password
+    cancelReset.addEventListener('click', function() {
+      forgotModal.classList.remove('show');
+    });
+
+    // Continue to dashboard button handler
+    continueBtn.addEventListener('click', function() {
+      apiKeyModal.classList.remove('show');
+      // Here you would redirect to the dashboard
+      window.location.href = 'dashboard.html';
+    });
+
+    // Copy button functionality
+    copyButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const fieldId = this.getAttribute('data-copy');
+        const textToCopy = document.getElementById(fieldId).textContent;
+        
+        navigator.clipboard.writeText(textToCopy)
+          .then(() => {
+            const originalText = this.textContent;
+            this.textContent = 'Copied!';
+            
+            setTimeout(() => {
+              this.textContent = originalText;
+            }, 2000);
+          })
+          .catch(err => {
+            showToast('Failed to copy text', 'error');
+          });
+      });
+    });
+
+    // Close modals when clicking outside
+    window.addEventListener('click', function(e) {
+      if (e.target === otpModal) {
+        otpModal.classList.remove('show');
+      }
+      
+      if (e.target === forgotModal) {
+        forgotModal.classList.remove('show');
+      }
+      
+      // Don't close API key modal when clicking outside
+      // as it contains important information
+    });
+
+    // Utility function to check if input is a phone number
+    function isPhoneNumber(input) {
+      // Basic phone number validation (can be improved)
+      const phoneRegex = /^\+?[0-9]{10,15}$/;
+      return phoneRegex.test(input);
+    }
+
+    // Show toast message
+    function showToast(message, type) {
+      toast.textContent = message;
+      toast.className = 'toast ' + type;
+      toast.classList.add('show');
+      
+      setTimeout(function() {
+        toast.classList.remove('show');
+      }, 3000);
     }
   </script>
 </body>
